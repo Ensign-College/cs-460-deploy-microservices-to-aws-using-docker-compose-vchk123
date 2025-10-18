@@ -35,9 +35,7 @@ After both containers are up, interact with the REST endpoints:
 
 ```bash
 # Create a tour package
-curl -X POST http://localhost:8080/packages \
-  -H 'Content-Type: application/json' \
-  -d '{"code":"BB","name":"Beekeepers you Betcha"}'
+curl -X POST http://localhost:8080/packages -H 'Content-Type: application/json' -d '{"code":"BB","name":"Beekeepers you Betcha"}'
 
 # List tour packages
 curl http://localhost:8080/packages
@@ -123,12 +121,9 @@ mvn package
 export AWS_REGION=us-east-1
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-aws ecr get-login-password --region us-east-1 \
-  | docker login --username AWS --password-stdin \
-    $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-./mvnw -DskipTests compile jib:build \
-  -Dimage=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/explorecali-jpa:3.0.0
+./mvnw -DskipTests compile jib:build -Dimage=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/explorecali-jpa:3.0.0
 ```
 
 ### 3) Complete AWS Setup
