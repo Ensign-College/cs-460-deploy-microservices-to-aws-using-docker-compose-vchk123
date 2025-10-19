@@ -8,6 +8,9 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 
 import com.example.explorecalijpa.model.TourRating;
+import edu.ensign.cs460.recommendation.TourSummary;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * Tour Rating Repository Interface
@@ -33,4 +36,21 @@ public interface TourRatingRepository extends JpaRepository<TourRating, Integer>
    * @return TourRating if found, null otherwise.
    */
   Optional<TourRating> findByTourIdAndCustomerId(Integer tourId, Integer customerId);
+
+  /**
+   * Find top tours ranked by average score.
+   *
+   * @param pageable Pageable object to limit results
+   * @return List of TourSummary projections
+   */
+  @Query("""
+         select tr.tour.id as tourId,
+                tr.tour.title as title,
+                avg(tr.score)  as avgScore,
+                count(tr.id)   as reviewCount
+         from TourRating tr
+         group by tr.tour.id, tr.tour.title
+         order by avg(tr.score) desc, count(tr.id) desc, tr.tour.title asc
+      """)
+  List<TourSummary> findTopTours(Pageable pageable);
 }
