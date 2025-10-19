@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.example.explorecalijpa.business.TourRatingService;
 import com.example.explorecalijpa.config.FeatureFlagService;
 
-@WebMvcTest(TourRatingController.class)
+@WebMvcTest
 public class TourRatingControllerFeatureFlagTest {
 
     @Autowired

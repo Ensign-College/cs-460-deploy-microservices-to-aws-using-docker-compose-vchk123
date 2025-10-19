@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.explorecalijpa.business.TourRatingService;
 import com.example.explorecalijpa.config.FeatureFlagService;
@@ -44,6 +45,12 @@ public class TourRatingController {
     this.featureFlagService = featureFlagService;
   }
 
+  private void checkRatingsEnabled() {
+    if (!featureFlagService.isTourRatingsEnabled()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Feature not available");
+    }
+  }
+
   /**
    * Create a Tour Rating.
    *
@@ -55,6 +62,7 @@ public class TourRatingController {
   @Operation(summary = "Create a Tour Rating")
   public RatingDto createTourRating(@PathVariable(value = "tourId") int tourId,
       @RequestBody @Valid RatingDto ratingDto) {
+    checkRatingsEnabled();
     log.info("POST /tours/{}/ratings ", tourId);
     TourRating rating = tourRatingService.createNew(tourId, ratingDto.getCustomerId(), 
         ratingDto.getScore(), ratingDto.getComment());
@@ -64,10 +72,8 @@ public class TourRatingController {
   @GetMapping
   @Operation(summary = "Lookup All Ratings for a Tour")
   public List<RatingDto> getAllRatingsForTour(@PathVariable(value = "tourId") int tourId) {
+    checkRatingsEnabled();
     log.info("GET /tours/{}/ratings", tourId);
-    if (!featureFlagService.isTourRatingsEnabled()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Feature not available");
-    }
     List<TourRating> tourRatings = tourRatingService.lookupRatings(tourId);
     return tourRatings.stream().map(RatingDto::new).toList();
   }
@@ -81,6 +87,7 @@ public class TourRatingController {
   @GetMapping("/average")
   @Operation(summary = "Get the Average Score for a Tour")
   public Map<String, Double> getAverage(@PathVariable(value = "tourId") int tourId) {
+    checkRatingsEnabled();
     log.info("GET /tours/{}/ratings/average", tourId);
     return Map.of("average", tourRatingService.getAverageScore(tourId));
   }
@@ -95,6 +102,7 @@ public class TourRatingController {
   @PutMapping
   @Operation(summary = "Modify All Tour Rating Attributes")
   public RatingDto updateWithPut(@PathVariable(value = "tourId") int tourId, @RequestBody @Valid RatingDto ratingDto) {
+    checkRatingsEnabled();
     log.info("PUT /tours/{}/ratings", tourId);
     return new RatingDto(tourRatingService.update(tourId, ratingDto.getCustomerId(),
                 ratingDto.getScore(), ratingDto.getComment()));
@@ -111,6 +119,7 @@ public class TourRatingController {
   @Operation(summary = "Modify Some Tour Rating Attributes")
   public RatingDto updateWithPatch(@PathVariable(value = "tourId") int tourId,
       @RequestBody @Valid RatingDto ratingDto) {
+    checkRatingsEnabled();
     log.info("PATCH /tours/{}/ratings", tourId);
     return new RatingDto(tourRatingService.updateSome(tourId,
         ratingDto.getCustomerId(),
@@ -127,6 +136,7 @@ public class TourRatingController {
   @DeleteMapping("/{customerId}")
   @Operation(summary = "Delete a Customer's Rating of a Tour")
   public void delete(@PathVariable(value = "tourId") int tourId, @PathVariable(value = "customerId") int customerId) {
+    checkRatingsEnabled();
     log.info("DELETE /tours/{}/ratings/{}", tourId, customerId);
     tourRatingService.delete(tourId, customerId);
   }
@@ -144,6 +154,7 @@ public class TourRatingController {
   public void createManyTourRatings(@PathVariable(value = "tourId") int tourId,
                                     @RequestParam(value = "score") int score,
                                     @RequestBody List<Integer> customers) {
+    checkRatingsEnabled();
     log.info("POST /tours/{}/ratings/batch", tourId);
     tourRatingService.rateMany(tourId, score, customers);
   }
