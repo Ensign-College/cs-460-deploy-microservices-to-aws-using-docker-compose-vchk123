@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.explorecalijpa.business.TourRatingService;
+import com.example.explorecalijpa.config.FeatureFlagService;
 import com.example.explorecalijpa.model.TourRating;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,9 +37,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(path = "/tours/{tourId}/ratings")
 public class TourRatingController {
   private TourRatingService tourRatingService;
+  private FeatureFlagService featureFlagService;
 
-  public TourRatingController(TourRatingService tourRatingService) {
+  public TourRatingController(TourRatingService tourRatingService, FeatureFlagService featureFlagService) {
     this.tourRatingService = tourRatingService;
+    this.featureFlagService = featureFlagService;
   }
 
   /**
@@ -62,6 +65,9 @@ public class TourRatingController {
   @Operation(summary = "Lookup All Ratings for a Tour")
   public List<RatingDto> getAllRatingsForTour(@PathVariable(value = "tourId") int tourId) {
     log.info("GET /tours/{}/ratings", tourId);
+    if (!featureFlagService.isTourRatingsEnabled()) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Feature not available");
+    }
     List<TourRating> tourRatings = tourRatingService.lookupRatings(tourId);
     return tourRatings.stream().map(RatingDto::new).toList();
   }
