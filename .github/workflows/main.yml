@@ -12,3 +12,5 @@ jobs:
         uses: planetoftheweb/copy-to-branches@v1.2
         env:
           key: main
+server.port=8080
+
